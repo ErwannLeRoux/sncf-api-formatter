@@ -2,7 +2,9 @@ const mongoose = require('mongoose');
 
 const documentSchema = mongoose.Schema({
     _id: "ObjectId",
-    station_name: "String"
+    city: "String",
+    name: "String",
+    department: "String"
 });
 
 documentSchema.set('collection', 'data');
