@@ -1,0 +1,23 @@
+{
+  "name": "sncf-api-formatter",
+  "version": "1.0.0",
+  "description": "For launching corpus training: (no need because corpus already trained)",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/master-2-idc/sncf-api-formatter.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://gitlab.com/master-2-idc/sncf-api-formatter/issues"
+  },
+  "homepage": "https://gitlab.com/master-2-idc/sncf-api-formatter#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
