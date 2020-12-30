@@ -31,4 +31,4 @@ const documentSchema = mongoose.Schema({
 
 documentSchema.set('collection', 'data');
 
-module.exports = mongoose.model('Document', documentSchema);
+module.exports = mongoose.model('Stations', documentSchema);

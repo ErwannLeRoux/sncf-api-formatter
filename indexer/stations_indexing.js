@@ -3,7 +3,7 @@ const assert   = require('assert')
 const request  = require('request')
 const logger   = require('simple-node-logger').createSimpleLogger();
 
-const Document = require('../models/stations_schema.js')
+const Stations = require('../models/stations_schema.js')
 const Endpoint = 'http://data.sncf.com/api/records/1.0/search'
 let db = mongoose.connection;
 
@@ -18,7 +18,7 @@ db.on('error', console.error)
 
 db.once('open', async function() {
     /* Cleaning the database to reindex the new api data */
-    await Document.deleteMany({})
+    await Stations.deleteMany({})
     logger.info('Mongo database cleaned')
 
     let stations_promise         = getStations()
@@ -103,7 +103,6 @@ db.once('open', async function() {
           }
         });
 
-
         station_obj.audits_number = station_audits.length
         station_obj.audits        = formatted_station_audits
         station_obj.scores_for_years = scores_for_years
@@ -112,13 +111,12 @@ db.once('open', async function() {
 
       logger.info('Database insertions')
 
-      Document.insertMany(formatted_sta).then(function() {
+      Stations.insertMany(formatted_sta).then(function() {
         logger.info("Data have been inserted successfuly !")
       })
 
     }).catch(console.error)
 });
-
 
 function getStations() {
   return new Promise((resolve, reject) => {
