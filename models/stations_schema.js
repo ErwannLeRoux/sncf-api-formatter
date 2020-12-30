@@ -6,6 +6,8 @@ const documentSchema = mongoose.Schema({
     name: "String",
     department: "String",
     uic_code: "String",
+    dpt_num: "Number",
+    wgs_84: [],
     scores_for_years: [
       {
         year: "String",

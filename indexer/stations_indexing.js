@@ -3,7 +3,7 @@ const assert   = require('assert')
 const request  = require('request')
 const logger   = require('simple-node-logger').createSimpleLogger();
 
-const Document = require('../models/record_schema.js')
+const Document = require('../models/stations_schema.js')
 const Endpoint = 'http://data.sncf.com/api/records/1.0/search'
 let db = mongoose.connection;
 
@@ -42,9 +42,11 @@ db.once('open', async function() {
       stations.forEach((station, i) => {
         let station_obj = {
           name: station.fields.gare_alias_libelle_noncontraint,
+          dpt_num: station.fields.departement_numero,
           department: station.fields.departement_libellemin,
           city: station.fields.commune_libellemin,
-          uic_code: station.fields.uic_code
+          uic_code: station.fields.uic_code,
+          wgs_84: station.fields.wgs_84
         }
 
         let station_audits = cleanliness.filter(function(s) {
@@ -99,8 +101,6 @@ db.once('open', async function() {
           } else {
             year_data.average_score = -1
           }
-
-          console.log(year_data)
         });
 
 
@@ -113,7 +113,7 @@ db.once('open', async function() {
       logger.info('Database insertions')
 
       Document.insertMany(formatted_sta).then(function() {
-        console.log("Data have been inserted successfuly !")
+        logger.info("Data have been inserted successfuly !")
       })
 
     }).catch(console.error)
