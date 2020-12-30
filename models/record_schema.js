@@ -6,11 +6,23 @@ const documentSchema = mongoose.Schema({
     name: "String",
     department: "String",
     uic_code: "String",
+    scores_for_years: [
+      {
+        year: "String",
+        data: [
+          {
+            month: "String",
+            value: "Number"
+          }
+        ],
+        average_score: "Number"
+      }
+    ],
     audits: [
       {
         total_checkpoints: "Number",
         not_conform_number: "Number",
-        month: "String"
+        month: "Date"
       }
     ],
 });

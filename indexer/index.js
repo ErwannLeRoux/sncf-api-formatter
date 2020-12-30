@@ -51,15 +51,36 @@ db.once('open', async function() {
           return s.fields.uic == station.fields.uic_code
         })
 
+        let scores_for_years = []
+
         formatted_station_audits = []
         station_audits.forEach((object) => {
           let total_checkpoints  = object.fields.nombre_d_observations
           let not_conform_number = object.fields.nombre_de_non_conformites
-          let audit_date         = object.fields.mois
+          let percentage         = object.fields.taux_de_conformite
+
+          let date_str   = object.fields.mois
+          let month_str  = date_str.split("-")[1]
+          let year_str   = date_str.split("-")[0]
+          let audit_date = new Date(parseInt(year_str), parseInt(month_str)+1, 1)
+
+          let year_exist = scores_for_years.find(y => y.year == year_str)
+          if(year_exist) {
+            year_exist.data.push({month: month_str, value: percentage})
+          } else {
+            scores_for_years.push(
+              {
+                year: year_str,
+                data: [],
+                average_score: 0
+              }
+            )
+          }
+
           formatted_station_audits.push({
             total_checkpoints: total_checkpoints,
             not_conform_number: not_conform_number,
-            month: audit_date
+            month: audit_date,
           })
         })
 
@@ -67,8 +88,25 @@ db.once('open', async function() {
           audited_number++
         }
 
+        scores_for_years.forEach((year_data) => {
+          let sum = Object.keys(year_data.data).reduce(function (previous, key) {
+              return previous + year_data.data[key].value;
+          }, 0);
+
+          let mean = (sum/year_data.data.length)
+          if(mean && mean != 0) {
+            year_data.average_score = parseFloat(mean)
+          } else {
+            year_data.average_score = -1
+          }
+
+          console.log(year_data)
+        });
+
+
         station_obj.audits_number = station_audits.length
         station_obj.audits        = formatted_station_audits
+        station_obj.scores_for_years = scores_for_years
         formatted_sta.push(station_obj)
       });
 
