@@ -62,7 +62,7 @@ async function main() {
       let region_name = request.query.region
 
       if(num_dep && region_name) {
-        response.send({
+	 response.send({
           status: '422',
           error: 'You can\t specify both department and region'
         })
@@ -73,7 +73,7 @@ async function main() {
         stations = await Stations.find({dpt_num : parseInt(num_dep)})
       } else if(region_name) {
         let departments = await Departement.find({
-          region_name: region_name
+	 region_name: region_name
         })
 
         // build filter
@@ -85,12 +85,7 @@ async function main() {
           filter.$or.push({dpt_num: item.num_dep})
         });
 
-        stations = await Stations.find(filter)
-
-        response.send({
-          status: '200',
-          data: stations
-        })
+        stations = await Stations.find(filter).catch(console.error)
       } else {
         // return all stations if no filter
         stations = await Stations.find({})
