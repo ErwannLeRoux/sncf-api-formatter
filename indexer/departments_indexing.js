@@ -25,6 +25,6 @@ db.once('open', async function() {
     let departments = JSON.parse(rawdata);
 
     Departement.insertMany(departments).then(function() {
-      console.log("Data have been inserted successfuly !")
+      logger.info("Data have been inserted successfuly !")
     })
 });
