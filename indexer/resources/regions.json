@@ -1,0 +1,67 @@
+[
+   {
+      "region_name":"Grand Est",
+      "lat":48.68823339378652,
+      "lng":5.6184579660539375
+   },
+   {
+      "region_name":"Nouvelle-Aquitaine",
+      "lat":45.20328986432702,
+      "lng":0.19311105186349647
+   },
+   {
+      "region_name":"Auvergne-Rhône-Alpes",
+      "lat":45.52640376471686,
+      "lng":4.540491126107691
+   },
+   {
+      "region_name":"Bourgogne-Franche-Comté",
+      "lat":47.24122337450453,
+      "lng":4.817403836980084
+   },
+   {
+      "region_name":"Bretagne",
+      "lat":48.195763507531126,
+      "lng":-2.868428448605677
+   },
+   {
+      "region_name":"Centre-Val de Loire",
+      "lat":47.50570806353015,
+      "lng":1.6730823554991925
+   },
+   {
+      "region_name":"Corse",
+      "lat":42.15308497301732,
+      "lng":9.112848163800951
+   },
+   {
+      "region_name":"Île-de-France",
+      "lat":48.698909181609885,
+      "lng":2.502125361249399
+   },
+   {
+      "region_name":"Occitanie",
+      "lat":43.71039992141642,
+      "lng":2.1390719400306164
+   },
+   {
+      "region_name":"Hauts-de-France",
+      "lat":49.95188399012559,
+      "lng":2.7858177294736746
+   },
+   {
+      "region_name":"Normandie",
+      "lat":49.12369707611015,
+      "lng":0.09886966964984983
+   },
+   {
+      "region_name":"Pays de la Loire",
+      "lat":47.45819116322565,
+      "lng":-0.8011071471809467
+   },
+   {
+      "region_name":"Provence-Alpes-Côte d'Azur",
+      "lat":43.939476277848605,
+      "lng":6.02216169835777
+   }
+]
