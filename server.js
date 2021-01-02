@@ -6,6 +6,7 @@ const logger   = require('simple-node-logger').createSimpleLogger();
 
 const Stations = require('./models/stations_schema.js')
 const Departement = require('./models/departments_schema.js')
+const GlobalScores = require('./models/global_scores_schema.js')
 
 async function main() {
     let router = express.Router();
@@ -108,6 +109,22 @@ async function main() {
           status: '200',
           data: station
         })
+    });
+
+    router.get('/global_scores', async (request, response) => {
+      let year = request.query.year
+      let scores = []
+
+      if(year) {
+        scores = await GlobalScores.find({"year": year})
+      } else {
+        scores = await GlobalScores.find({})
+      }
+
+      response.send({
+        status: '200',
+        data: scores
+      })
     });
 
     app.use('/', router)
