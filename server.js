@@ -1,11 +1,12 @@
-const fs = require('fs')
-const express = require('express')
+const fs         = require('fs')
+const express    = require('express')
 const bodyParser = require('body-parser')
-const mongoose = require('mongoose')
-const logger   = require('simple-node-logger').createSimpleLogger();
+const mongoose   = require('mongoose')
+const logger     = require('simple-node-logger').createSimpleLogger();
+const cors       = require('cors')
 
-const Stations = require('./models/stations_schema.js')
-const Departement = require('./models/departments_schema.js')
+const Stations     = require('./models/stations_schema.js')
+const Departement  = require('./models/departments_schema.js')
 const GlobalScores = require('./models/global_scores_schema.js')
 
 async function main() {
@@ -14,7 +15,7 @@ async function main() {
 
     let db = mongoose.connection;
 
-    mongoose.connect('mongodb://antoinegonzalez.fr:27017/sncf', {
+    mongoose.connect('mongodb://localhost:27017/sncf', {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       pass: 'sncfuser',
@@ -29,8 +30,8 @@ async function main() {
     });
 
     app.use(bodyParser.urlencoded({ extended: false }))
-
     app.use(bodyParser.json())
+    app.use(cors())
 
     app.set('view engine', 'ejs')
 
