@@ -127,6 +127,15 @@ async function main() {
       })
     });
 
+    router.get('/regions', async (request, response) => {
+      let rawdata = fs.readFileSync('./indexer/resources/regions.json');
+      let regions = JSON.parse(rawdata);
+      response.send({
+        status: '200',
+        data: regions
+      })
+    });
+
     app.use('/', router)
 
     app.listen(8080)
