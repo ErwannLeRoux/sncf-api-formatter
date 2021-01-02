@@ -3,7 +3,9 @@ const assert   = require('assert')
 const request  = require('request')
 const logger   = require('simple-node-logger').createSimpleLogger();
 
-const Stations = require('../models/stations_schema.js')
+const Document     = require('../models/stations_schema.js')
+const GlobalScores = require('../models/global_scores_schema.js')
+
 const Endpoint = 'http://data.sncf.com/api/records/1.0/search'
 let db = mongoose.connection;
 
@@ -18,7 +20,8 @@ db.on('error', console.error)
 
 db.once('open', async function() {
     /* Cleaning the database to reindex the new api data */
-    await Stations.deleteMany({})
+    await Document.deleteMany({})
+    await GlobalScores.deleteMany({})
     logger.info('Mongo database cleaned')
 
     let stations_promise         = getStations()
@@ -111,10 +114,46 @@ db.once('open', async function() {
 
       logger.info('Database insertions')
 
-      Stations.insertMany(formatted_sta).then(function() {
-        logger.info("Data have been inserted successfuly !")
-      })
+      Document.insertMany(formatted_sta).then(function() {
+        logger.info("Stations have been inserted successfuly !")
 
+        /* Processing global values */
+        let global_years = []
+        formatted_sta.forEach((item) => {
+          let scores = item.scores_for_years
+          scores.forEach((year) => {
+            let current_year = global_years.find(y => y.year == year.year)
+            if(current_year) {
+              current_year.average_score = ((current_year.average_score + year.average_score) / 2)
+              year.data.forEach((data) => {
+                current_year.audit_number++
+                let current_month = current_year.data.find(month => month.month == data.month)
+                if(current_month) {
+                  current_month.value = ((current_month.value + data.value) / 2)
+                } else {
+                  current_year.data.push({
+                    month: data.month,
+                    value: data.value
+                  })
+                }
+              });
+            } else {
+              global_years.push({
+                year: year.year,
+                data: year.data,
+                average_score: year.average_score,
+                audit_number: 1
+              })
+            }
+          });
+        });
+
+        GlobalScores.insertMany(global_years).then(function() {
+          logger.info("Global Scores have been inserted successfuly !")
+          logger.info("Process Terminated")
+          db.close()
+        })
+      })
     }).catch(console.error)
 });
 
