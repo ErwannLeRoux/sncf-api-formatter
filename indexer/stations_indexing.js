@@ -106,7 +106,6 @@ db.once('open', async function() {
           }
         });
 
-
         station_obj.audits_number = station_audits.length
         station_obj.audits        = formatted_station_audits
         station_obj.scores_for_years = scores_for_years
@@ -157,7 +156,6 @@ db.once('open', async function() {
       })
     }).catch(console.error)
 });
-
 
 function getStations() {
   return new Promise((resolve, reject) => {
