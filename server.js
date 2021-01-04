@@ -43,6 +43,100 @@ async function main() {
         response.send({status: 'Ok'})
     });
 
+    router.get('/top5', async (request, response) => {
+        let year     = request.query.year
+        let stations = []
+
+        stations = await Stations.find({
+            'audits' :
+                {
+                    $exists: true,
+                    $not: {
+                        $size: 0
+                    }
+                },
+            scores_for_years:
+                {
+                    $elemMatch:
+                        {
+                            year: year
+                        }
+                }
+        })
+
+        if(year && year != '') {
+            stations.forEach((s) => {
+                let scores       = s.scores_for_years
+                let concern_year = scores.find(y => y.year == year)
+                if(!concern_year) {
+                    s.scores_for_years = []
+                }
+            })
+        }
+
+        stations.sort((a,b)=>  {
+            let row_a = a.scores_for_years.find(y => y.year == year)
+            let row_b = b.scores_for_years.find(y => y.year == year)
+            let avg_a = row_a.average_score
+            let avg_b = row_b.average_score
+            return avg_b - avg_a
+        })
+
+        stations = stations.slice(0, 5)
+
+        response.send({
+            status: '200',
+            data: stations
+        })
+    });
+
+    router.get('/worst5', async (request, response) => {
+        let year     = request.query.year
+        let stations = []
+
+        stations = await Stations.find({
+            'audits' :
+                {
+                    $exists: true,
+                    $not: {
+                        $size: 0
+                    }
+                },
+            scores_for_years:
+                {
+                    $elemMatch:
+                        {
+                            year: year
+                        }
+                }
+        })
+
+        if(year && year != '') {
+            stations.forEach((s) => {
+                let scores       = s.scores_for_years
+                let concern_year = scores.find(y => y.year == year)
+                if(!concern_year) {
+                    s.scores_for_years = []
+                }
+            })
+        }
+
+        stations.sort((a,b)=>  {
+            let row_a = a.scores_for_years.find(y => y.year == year)
+            let row_b = b.scores_for_years.find(y => y.year == year)
+            let avg_a = row_a.average_score
+            let avg_b = row_b.average_score
+            return avg_a  - avg_b
+        })
+
+        stations = stations.slice(0, 5)
+
+        response.send({
+            status: '200',
+            data: stations
+        })
+    });
+
     router.get('/departments', async (request, response) => {
         let region = request.query.region;
         let departments = []
