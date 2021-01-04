@@ -1,3 +1,5 @@
+require('dotenv').config()
+
 const fs         = require('fs')
 const express    = require('express')
 const bodyParser = require('body-parser')
@@ -15,11 +17,11 @@ async function main() {
 
     let db = mongoose.connection;
 
-    mongoose.connect('mongodb://localhost:27017/sncf', {
+    mongoose.connect(`mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
-        pass: 'sncfuser',
-        user: 'sncfuser'
+        pass: process.env.DB_PWD,
+        user: process.env.DB_USERNAME
     });
 
     db.on('error', console.error)
