@@ -239,8 +239,12 @@ async function main() {
     });
 
     router.get('/regions', async (request, response) => {
+        let region  = request.query.region
         let rawdata = fs.readFileSync('./indexer/resources/regions.json');
         let regions = JSON.parse(rawdata);
+        if(region) {
+            regions = [regions.find(r = > r.region_name == region)]
+        }
         response.send({
             status: '200',
             data: regions
