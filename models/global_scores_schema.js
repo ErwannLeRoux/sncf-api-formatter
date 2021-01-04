@@ -5,6 +5,7 @@ const documentSchema = mongoose.Schema({
     year: "String",
     audit_number: "Number",
     data: [
+
         {
             month: "String",
             value: "Number"

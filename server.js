@@ -1,3 +1,4 @@
+
 require('dotenv').config()
 
 const fs         = require('fs')
@@ -22,6 +23,7 @@ async function main() {
         useUnifiedTopology: true,
         pass: process.env.DB_PWD,
         user: process.env.DB_USERNAME
+
     });
 
     db.on('error', console.error)
@@ -161,6 +163,7 @@ async function main() {
         let filter      = {}
         let stations    = []
 
+
         /* handle invalid request */
         if(num_dep && region_name) {
             response.send({
@@ -190,6 +193,7 @@ async function main() {
                 filter.$or.push({dpt_num: item.num_dep})
             });
         }
+
 
         stations = await Stations.find(filter)
 
@@ -243,12 +247,37 @@ async function main() {
         let rawdata = fs.readFileSync('./indexer/resources/regions.json');
         let regions = JSON.parse(rawdata);
         if(region) {
-            regions = [regions.find(r = > r.region_name == region)]
+            regions = [regions.find(r => r.region_name == region)]
         }
         response.send({
             status: '200',
             data: regions
         })
+    });
+
+    router.get('/global_scores', async (request, response) => {
+      let year = request.query.year
+      let scores = []
+
+      if(year) {
+        scores = await GlobalScores.find({"year": year})
+      } else {
+        scores = await GlobalScores.find({})
+      }
+
+      response.send({
+        status: '200',
+        data: scores
+      })
+    });
+
+    router.get('/regions', async (request, response) => {
+      let rawdata = fs.readFileSync('./indexer/resources/regions.json');
+      let regions = JSON.parse(rawdata);
+      response.send({
+        status: '200',
+        data: regions
+      })
     });
 
     app.use('/', router)
