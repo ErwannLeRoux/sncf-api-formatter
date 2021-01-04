@@ -172,7 +172,7 @@ async function main() {
         /* build audit restriction */
         if(mode == 'audited-only') {
             filter = {'audits' : { $exists: true, $not: {$size: 0}}}
-        } else if(mode == 'non-audited-ony') {
+        } else if(mode == 'non-audited-only') {
             filter = {'audits' : { $exists: true,  $size: 0}}
         }
 
@@ -214,7 +214,6 @@ async function main() {
 
     router.get('/station/:uic', async (request, response) => {
         let uic = request.params.uic;
-        console.log(uic)
         let station = await Stations.find({uic_code: uic})
         response.send({
             status: '200',
@@ -243,7 +242,7 @@ async function main() {
         let rawdata = fs.readFileSync('./indexer/resources/regions.json');
         let regions = JSON.parse(rawdata);
         if(region) {
-            regions = [regions.find(r = > r.region_name == region)]
+            regions = [regions.find(r => r.region_name == region)]
         }
         response.send({
             status: '200',
