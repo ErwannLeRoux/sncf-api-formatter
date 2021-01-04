@@ -125,6 +125,10 @@ async function main() {
             let row_a = a.scores_for_years.find(y => y.year == year)
             let row_b = b.scores_for_years.find(y => y.year == year)
             let avg_a = row_a.average_score
+            /* cancel corrupted data */
+            if(avg_a == -1) {
+              avg_a = 999
+            }
             let avg_b = row_b.average_score
             return avg_a  - avg_b
         })
