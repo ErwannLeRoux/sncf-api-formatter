@@ -1,3 +1,6 @@
+
+require('dotenv').config()
+
 const fs         = require('fs')
 const express    = require('express')
 const bodyParser = require('body-parser')
@@ -15,18 +18,19 @@ async function main() {
 
     let db = mongoose.connection;
 
-    mongoose.connect('mongodb://localhost:27017/sncf', {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      pass: 'sncfuser',
-      user: 'sncfuser'
+    mongoose.connect(`mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`, {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+        pass: process.env.DB_PWD,
+        user: process.env.DB_USERNAME
+
     });
 
     db.on('error', console.error)
 
     db.once('open', async function() {
-      logger.info("Connection established with database")
-      logger.info("Server is ready to handle requests")
+        logger.info("Connection established with database")
+        logger.info("Server is ready to handle requests")
     });
 
     app.use(bodyParser.urlencoded({ extended: false }))
@@ -38,63 +42,178 @@ async function main() {
     app.use('/assets', express.static('public'))
 
     router.get('/', (request, response) => {
-      response.send({status: 'Ok'})
+        response.send({status: 'Ok'})
+    });
+
+    router.get('/top5', async (request, response) => {
+        let year     = request.query.year
+        let stations = []
+
+        stations = await Stations.find({
+            'audits' :
+                {
+                    $exists: true,
+                    $not: {
+                        $size: 0
+                    }
+                },
+            scores_for_years:
+                {
+                    $elemMatch:
+                        {
+                            year: year
+                        }
+                }
+        })
+
+        if(year && year != '') {
+            stations.forEach((s) => {
+                let scores       = s.scores_for_years
+                let concern_year = scores.find(y => y.year == year)
+                if(!concern_year) {
+                    s.scores_for_years = []
+                }
+            })
+        }
+
+        stations.sort((a,b)=>  {
+            let row_a = a.scores_for_years.find(y => y.year == year)
+            let row_b = b.scores_for_years.find(y => y.year == year)
+            let avg_a = row_a.average_score
+            let avg_b = row_b.average_score
+            return avg_b - avg_a
+        })
+
+        stations = stations.slice(0, 5)
+
+        response.send({
+            status: '200',
+            data: stations
+        })
+    });
+
+    router.get('/worst5', async (request, response) => {
+        let year     = request.query.year
+        let stations = []
+
+        stations = await Stations.find({
+            'audits' :
+                {
+                    $exists: true,
+                    $not: {
+                        $size: 0
+                    }
+                },
+            scores_for_years:
+                {
+                    $elemMatch:
+                        {
+                            year: year
+                        }
+                }
+        })
+
+        if(year && year != '') {
+            stations.forEach((s) => {
+                let scores       = s.scores_for_years
+                let concern_year = scores.find(y => y.year == year)
+                if(!concern_year) {
+                    s.scores_for_years = []
+                }
+            })
+        }
+
+        stations.sort((a,b)=>  {
+            let row_a = a.scores_for_years.find(y => y.year == year)
+            let row_b = b.scores_for_years.find(y => y.year == year)
+            let avg_a = row_a.average_score
+            let avg_b = row_b.average_score
+            return avg_a  - avg_b
+        })
+
+        stations = stations.slice(0, 5)
+
+        response.send({
+            status: '200',
+            data: stations
+        })
     });
 
     router.get('/departments', async (request, response) => {
         let region = request.query.region;
         let departments = []
         if(!region) {
-          departments = await Departement.find()
+            departments = await Departement.find()
         } else {
-          departments = await Departement.find({
-            region_name: region
-          })
+            departments = await Departement.find({
+                region_name: region
+            })
         }
         response.send({
-          status: '200',
-          data: departments
+            status: '200',
+            data: departments
         })
     });
 
     router.get('/stations', async (request, response) => {
-      let num_dep = request.query.num_dep
-      let region_name = request.query.region
+        let region_name = request.query.region
+        let num_dep     = request.query.num_dep
+        let year        = request.query.year
+        let mode        = request.query.mode
+        let filter      = {}
+        let stations    = []
 
-      if(num_dep && region_name) {
-	 response.send({
-          status: '422',
-          error: 'You can\t specify both department and region'
-        })
-      }
 
-      let stations = []
-      if(num_dep) {
-        stations = await Stations.find({dpt_num : parseInt(num_dep)})
-      } else if(region_name) {
-        let departments = await Departement.find({
-	 region_name: region_name
-        })
-
-        // build filter
-        let filter = {
-          $or: []
+        /* handle invalid request */
+        if(num_dep && region_name) {
+            response.send({
+                status: '422',
+                error: 'You can\t specify both department and region'
+            })
         }
 
-        departments.forEach((item, i) => {
-          filter.$or.push({dpt_num: item.num_dep})
-        });
+        /* build audit restriction */
+        if(mode == 'audited-only') {
+            filter = {'audits' : { $exists: true, $not: {$size: 0}}}
+        } else if(mode == 'non-audited-ony') {
+            filter = {'audits' : { $exists: true,  $size: 0}}
+        }
 
-        stations = await Stations.find(filter).catch(console.error)
-      } else {
-        // return all stations if no filter
-        stations = await Stations.find({})
-      }
+        /* build departement or region restriction */
+        if(num_dep && num_dep != '') {
+            filter['dpt_num'] = parseInt(num_dep)
+        } else if(region_name && region_name != '') {
+            let departments = await Departement.find({
+                region_name: region_name
+            })
 
-      response.send({
-        status: '200',
-        data: stations
-      })
+            filter['$or'] = []
+
+            departments.forEach((item) => {
+                filter.$or.push({dpt_num: item.num_dep})
+            });
+        }
+
+
+        stations = await Stations.find(filter)
+
+        /* build year filtering */
+        if(year && year != '') {
+            stations.forEach((s) => {
+                let scores       = s.scores_for_years
+                let concern_year = scores.find(y => y.year == year)
+                if(!concern_year) {
+                    s.scores_for_years = []
+                } else {
+                    s.scores_for_years = concern_year
+                }
+            })
+        }
+
+        response.send({
+            status: '200',
+            data: stations
+        })
     });
 
     router.get('/station/:uic', async (request, response) => {
@@ -102,8 +221,37 @@ async function main() {
         console.log(uic)
         let station = await Stations.find({uic_code: uic})
         response.send({
-          status: '200',
-          data: station
+            status: '200',
+            data: station
+        })
+    });
+
+    router.get('/global_scores', async (request, response) => {
+        let year = request.query.year
+        let scores = []
+
+        if(year) {
+            scores = await GlobalScores.find({"year": year})
+        } else {
+            scores = await GlobalScores.find({})
+        }
+
+        response.send({
+            status: '200',
+            data: scores
+        })
+    });
+
+    router.get('/regions', async (request, response) => {
+        let region  = request.query.region
+        let rawdata = fs.readFileSync('./indexer/resources/regions.json');
+        let regions = JSON.parse(rawdata);
+        if(region) {
+            regions = [regions.find(r => r.region_name == region)]
+        }
+        response.send({
+            status: '200',
+            data: regions
         })
     });
 
@@ -134,7 +282,7 @@ async function main() {
 
     app.use('/', router)
 
-    app.listen(8080)
+    app.listen(8081)
 }
 
 main()
