@@ -127,6 +127,10 @@ async function main() {
             let row_a = a.scores_for_years.find(y => y.year == year)
             let row_b = b.scores_for_years.find(y => y.year == year)
             let avg_a = row_a.average_score
+            /* cancel corrupted data */
+            if(avg_a == -1) {
+              avg_a = 999
+            }
             let avg_b = row_b.average_score
             return avg_a  - avg_b
         })
@@ -175,7 +179,7 @@ async function main() {
         /* build audit restriction */
         if(mode == 'audited-only') {
             filter = {'audits' : { $exists: true, $not: {$size: 0}}}
-        } else if(mode == 'non-audited-ony') {
+        } else if(mode == 'non-audited-only') {
             filter = {'audits' : { $exists: true,  $size: 0}}
         }
 
@@ -218,7 +222,6 @@ async function main() {
 
     router.get('/station/:uic', async (request, response) => {
         let uic = request.params.uic;
-        console.log(uic)
         let station = await Stations.find({uic_code: uic})
         response.send({
             status: '200',
