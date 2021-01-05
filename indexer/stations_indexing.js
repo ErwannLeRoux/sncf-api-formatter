@@ -148,6 +148,31 @@ db.once('open', async function() {
           });
         });
 
+        global_years.forEach((item) => {
+          item.audit_high   = 0
+          item.audit_medium = 0
+          item.audit_low    = 0
+        })
+
+        formatted_sta.forEach((item) => {
+          let sc = item.scores_for_years
+
+          if(sc.length != 0) {
+            sc.forEach((year) => {
+              let global_corresponding = global_years.find(y => y.year == year.year)
+              let avg = year.average_score
+
+              if(avg >= 95) {
+                global_corresponding.audit_high++
+              } else if(avg >= 90) {
+                global_corresponding.audit_medium++
+              } else if(avg != -1) {
+                global_corresponding.audit_low++
+              }
+            })
+          }
+        })
+
         GlobalScores.insertMany(global_years).then(function() {
           logger.info("Global Scores have been inserted successfuly !")
           logger.info("Process Terminated")
