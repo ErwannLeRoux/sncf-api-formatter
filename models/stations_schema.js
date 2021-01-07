@@ -7,6 +7,7 @@ const documentSchema = mongoose.Schema({
     department: "String",
     uic_code: "String",
     dpt_num: "Number",
+    region_name: "String",
     wgs_84: [],
     scores_for_years: [
       {
@@ -14,7 +15,10 @@ const documentSchema = mongoose.Schema({
         data: [
           {
             month: "String",
-            value: "Number"
+            value: "Number",
+            not_conform_number: "Number",
+            total_checkpoints : "Number",
+            year: "String"
           }
         ],
         average_score: "Number"
