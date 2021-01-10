@@ -5,6 +5,7 @@ const logger   = require('simple-node-logger').createSimpleLogger();
 
 const Document     = require('../models/stations_schema.js')
 const GlobalScores = require('../models/global_scores_schema.js')
+const Departement  = require('../models/departments_schema.js')
 
 const Endpoint = 'http://data.sncf.com/api/records/1.0/search'
 let db = mongoose.connection;
@@ -33,6 +34,8 @@ db.once('open', async function() {
       cleanliness_promise,
     ]
 
+    let departments = await Departement.find({})
+
     Promise.all(promises).then((response) => {
       logger.info('All responses have been retrieved')
       let stations       = JSON.parse(response[0]).records
@@ -43,13 +46,16 @@ db.once('open', async function() {
       logger.info('Computing starting')
 
       stations.forEach((station, i) => {
+        let dpt_obj = departments.find(dpt => dpt.num_dep == station.fields.departement_numero)
+
         let station_obj = {
           name: station.fields.gare_alias_libelle_noncontraint,
           dpt_num: station.fields.departement_numero,
           department: station.fields.departement_libellemin,
           city: station.fields.commune_libellemin,
           uic_code: station.fields.uic_code,
-          wgs_84: station.fields.wgs_84
+          wgs_84: station.fields.wgs_84,
+          region_name: dpt_obj.region_name
         }
 
         let station_audits = cleanliness.filter(function(s) {
@@ -71,7 +77,7 @@ db.once('open', async function() {
 
           let year_exist = scores_for_years.find(y => y.year == year_str)
           if(year_exist) {
-            year_exist.data.push({month: month_str, value: percentage})
+            year_exist.data.push({month: month_str, year: year_str, not_conform_number: not_conform_number, total_checkpoints: total_checkpoints, value: percentage})
           } else {
             scores_for_years.push(
               {
@@ -147,6 +153,31 @@ db.once('open', async function() {
             }
           });
         });
+
+        global_years.forEach((item) => {
+          item.audit_high   = 0
+          item.audit_medium = 0
+          item.audit_low    = 0
+        })
+
+        formatted_sta.forEach((item) => {
+          let sc = item.scores_for_years
+
+          if(sc.length != 0) {
+            sc.forEach((year) => {
+              let global_corresponding = global_years.find(y => y.year == year.year)
+              let avg = year.average_score
+
+              if(avg >= 95) {
+                global_corresponding.audit_high++
+              } else if(avg >= 90) {
+                global_corresponding.audit_medium++
+              } else if(avg != -1) {
+                global_corresponding.audit_low++
+              }
+            })
+          }
+        })
 
         GlobalScores.insertMany(global_years).then(function() {
           logger.info("Global Scores have been inserted successfuly !")

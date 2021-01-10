@@ -5,12 +5,16 @@ const documentSchema = mongoose.Schema({
     year: "String",
     audit_number: "Number",
     data: [
-      {
-        month: "String",
-        value: "Number"
-      }
+
+        {
+            month: "String",
+            value: "Number"
+        }
     ],
-    average_score: "Number"
+    average_score: "Number",
+    audit_high: "Number",
+    audit_medium: "Number",
+    audit_low: "Number"
 });
 
 documentSchema.set('collection', 'global_scores');
